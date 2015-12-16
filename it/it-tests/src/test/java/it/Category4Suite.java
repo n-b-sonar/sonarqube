@@ -32,6 +32,7 @@ import it.serverSystem.HttpsTest;
 import it.serverSystem.ServerSystemRestartingOrchestrator;
 import it.serverSystem.ServerSystemTest;
 import it.updateCenter.UpdateCenterTest;
+import it.user.ExternalAuthenticationTest;
 import it.user.FavouriteTest;
 import it.user.ForceAuthenticationTest;
 import org.junit.ClassRule;
@@ -50,6 +51,7 @@ import static util.ItUtils.xooPlugin;
   // user
   ForceAuthenticationTest.class,
   FavouriteTest.class,
+  ExternalAuthenticationTest.class,
   // project search
   ProjectSearchTest.class,
   // update center

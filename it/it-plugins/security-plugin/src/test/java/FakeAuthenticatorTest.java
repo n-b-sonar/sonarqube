@@ -1,0 +1,107 @@
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.sonar.api.config.Settings;
+import org.sonar.api.security.UserDetails;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
+public class FakeAuthenticatorTest {
+
+  private Settings settings;
+  private FakeAuthenticator authenticator;
+
+  @Before
+  public void setUp() {
+    settings = new Settings();
+    authenticator = new FakeAuthenticator(settings);
+    authenticator.init();
+  }
+
+  @Test
+  public void shouldNeverTouchAdmin() {
+    assertThat(authenticator.authenticate("admin", "admin")).isTrue();
+    assertThat(authenticator.doGetGroups("admin")).isNull();
+    assertThat(authenticator.doGetUserDetails("admin")).isNull();
+  }
+
+  @Test
+  public void shouldAuthenticateFakeUsers() {
+    settings.setProperty(FakeAuthenticator.DATA_PROPERTY, "evgeny.password=foo");
+
+    assertThat(authenticator.authenticate("evgeny", "foo")).isTrue();
+    assertThat(authenticator.authenticate("evgeny", "bar")).isFalse();
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void shouldNotAuthenticateNotExistingUsers() {
+    authenticator.authenticate("evgeny", "foo");
+  }
+
+  @Test
+  public void shouldGetUserDetails() {
+    settings.setProperty(FakeAuthenticator.DATA_PROPERTY, "evgeny.password=foo\n" +
+      "evgeny.name=Tester Testerovich\n" +
+      "evgeny.email=evgeny@example.org");
+
+    UserDetails details = authenticator.doGetUserDetails("evgeny");
+    assertThat(details.getName()).isEqualTo("Tester Testerovich");
+    assertThat(details.getEmail()).isEqualTo("evgeny@example.org");
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void shouldNotReturnDetailsForNotExistingUsers() {
+    authenticator.doGetUserDetails("evgeny");
+  }
+
+  @Test
+  public void shouldGetGroups() {
+    settings.setProperty(FakeAuthenticator.DATA_PROPERTY, "evgeny.password=foo\n" +
+      "evgeny.groups=sonar-users,sonar-developers");
+
+    assertThat(authenticator.doGetGroups("evgeny")).containsOnly("sonar-users", "sonar-developers");
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void shouldNotReturnGroupsForNotExistingUsers() {
+    authenticator.doGetGroups("evgeny");
+  }
+
+  @Test
+  public void shouldParseList() {
+    assertThat(FakeAuthenticator.parseList(null)).isEmpty();
+    assertThat(FakeAuthenticator.parseList("")).isEmpty();
+    assertThat(FakeAuthenticator.parseList(",,,")).isEmpty();
+    assertThat(FakeAuthenticator.parseList("a,b")).containsOnly("a", "b");
+  }
+
+  @Test
+  public void shouldParseMap() {
+    Map<String, String> map = FakeAuthenticator.parse(null);
+    assertThat(map).isEmpty();
+
+    map = FakeAuthenticator.parse("");
+    assertThat(map).isEmpty();
+
+    map = FakeAuthenticator.parse("foo=bar");
+    assertThat(map).hasSize(1);
+    assertThat(map.get("foo")).isEqualTo("bar");
+
+    map = FakeAuthenticator.parse("foo=bar\r\nbaz=qux");
+    assertThat(map).hasSize(2);
+    assertThat(map.get("foo")).isEqualTo("bar");
+    assertThat(map.get("baz")).isEqualTo("qux");
+
+    map = FakeAuthenticator.parse("foo=bar\nbaz=qux");
+    assertThat(map).hasSize(2);
+    assertThat(map.get("foo")).isEqualTo("bar");
+    assertThat(map.get("baz")).isEqualTo("qux");
+
+    map = FakeAuthenticator.parse("foo=bar\n\n\nbaz=qux");
+    assertThat(map).hasSize(2);
+    assertThat(map.get("foo")).isEqualTo("bar");
+    assertThat(map.get("baz")).isEqualTo("qux");
+  }
+
+}
