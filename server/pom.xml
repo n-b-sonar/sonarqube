@@ -18,6 +18,5 @@
     <module>sonar-views-bridge</module>
     <module>sonar-dev-cockpit-bridge</module>
     <module>sonar-web</module>
-    <module>sonar-server-benchmarks</module>
   </modules>
 </project>
