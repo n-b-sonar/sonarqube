@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- to be moved to travis-utils -->
+
+<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+          xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <servers>
+    <server>
+      <id>repox-releases</id>
+      <username>${env.REPOX_USERNAME}</username>
+      <password>${env.REPOX_PASSWORD}</password>
+    </server>
+    <server>
+      <id>repox-snapshots</id>
+      <username>${env.REPOX_USERNAME}</username>
+      <password>${env.REPOX_PASSWORD}</password>
+    </server>
+  </servers>
+  <profiles>
+    <profile>
+      <id>repox</id>
+      <repositories>
+        <repository>
+          <id>repox-releases</id>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <name>sonarsource</name>
+          <url>https://repox.sonarsource.com/sonarsource</url>
+        </repository>
+        <repository>
+          <id>repox-snapshots</id>
+          <snapshots/>
+          <name>sonarsource</name>
+          <url>https://repox.sonarsource.com/sonarsource</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>repox-releases</id>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <name>sonarsource</name>
+          <url>https://repox.sonarsource.com/sonarsource</url>
+        </pluginRepository>
+        <pluginRepository>
+          <id>repox-snapshots</id>
+          <snapshots/>
+          <name>sonarsource</name>
+          <url>https://repox.sonarsource.com/sonarsource</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>repox</activeProfile>
+  </activeProfiles>
+</settings>
