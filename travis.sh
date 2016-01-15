@@ -19,6 +19,7 @@ CI)
   # temporary draft
   mvn deploy \
     -Prepox,publish-repox \
+    -DskipTests \
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dartifactory.user=$REPOX_QA_QUEUE_USERNAME \
     -Dartifactory.password=$REPOX_QA_QUEUE_PASSWORD \
