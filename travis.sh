@@ -17,14 +17,16 @@ case "$TARGET" in
 
 CI)
   # temporary draft
+  ./set_maven_build_version $TRAVIS_BUILD_NUMBER
+
   mvn deploy \
     -Prepox,publish-repox \
     -DskipTests \
     -Dmaven.test.redirectTestOutputToFile=false \
-    -Dartifactory.user=$REPOX_QA_QUEUE_USERNAME \
-    -Dartifactory.password=$REPOX_QA_QUEUE_PASSWORD \
+    -Dartifactory.user=$REPOX_QA_DEPLOY_USERNAME \
+    -Dartifactory.password=$REPOX_QA_DEPLOY_PASSWORD \
     -s settings-repox.xml \
-    -U -B -e -V
+    -B -e -V
   ;;
 
 

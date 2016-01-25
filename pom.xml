@@ -85,8 +85,8 @@
 
     <!-- to be moved to parent pom -->
     <artifactory.url>https://repox.sonarsource.com</artifactory.url>
-    <artifactory.repo>sonarsource-public-releases-qa-queue</artifactory.repo>
-    <artifactory.snapshot.repo>sonarsource-public-snapshots-qa-queue</artifactory.snapshot.repo>
+    <artifactory.repo>sonarsource-public-qa</artifactory.repo>
+    <artifactory.snapshot.repo>sonarsource-public-qa</artifactory.snapshot.repo>
 
     <gitRepositoryName>sonarqube</gitRepositoryName>
   </properties>
