@@ -9,4 +9,4 @@ NEW_VERSION=$RELEASE_VERSION-$BUILD_ID
 
 echo "Replacing version $CURRENT_VERSION with $NEW_VERSION"
 
-./set_version $NEW_VERSION
+./set_version.sh $NEW_VERSION

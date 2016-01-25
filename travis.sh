@@ -17,7 +17,7 @@ case "$TARGET" in
 
 CI)
   # temporary draft
-  ./set_maven_build_version $TRAVIS_BUILD_NUMBER
+  ./set_maven_build_version.sh $TRAVIS_BUILD_NUMBER
 
   mvn deploy \
     -Prepox,publish-repox \
