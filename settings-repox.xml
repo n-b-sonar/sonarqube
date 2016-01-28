@@ -1,60 +1,131 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!-- to be moved to travis-utils -->
-
-<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
-          xmlns="http://maven.apache.org/SETTINGS/1.1.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <servers>
-    <server>
-      <id>repox-releases</id>
-      <username>${env.REPOX_USERNAME}</username>
-      <password>${env.REPOX_PASSWORD}</password>
-    </server>
-    <server>
-      <id>repox-snapshots</id>
-      <username>${env.REPOX_USERNAME}</username>
-      <password>${env.REPOX_PASSWORD}</password>
-    </server>
-  </servers>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <profiles>
     <profile>
-      <id>repox</id>
+      <id>central-repo</id>
+      <activation>
+        <property>
+          <name>skip-sonarsource-public-repo</name>
+        </property>
+      </activation>
       <repositories>
         <repository>
-          <id>repox-releases</id>
+          <id>central</id>
+          <name>Central Repository</name>
+          <url>http://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
-          <name>sonarsource</name>
-          <url>https://repox.sonarsource.com/sonarsource</url>
-        </repository>
-        <repository>
-          <id>repox-snapshots</id>
-          <snapshots/>
-          <name>sonarsource</name>
-          <url>https://repox.sonarsource.com/sonarsource</url>
         </repository>
       </repositories>
       <pluginRepositories>
         <pluginRepository>
-          <id>repox-releases</id>
+          <id>central</id>
+          <name>Central Repository</name>
+          <url>http://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
-          <name>sonarsource</name>
-          <url>https://repox.sonarsource.com/sonarsource</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+
+    <profile>
+      <id>sonarsource-public-repo</id>
+      <activation>
+        <property>
+          <name>!skip-sonarsource-public-repo</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <name>Central Repository</name>
+          <url>http://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>sonarsource-public-releases</id>
+          <name>sonarsource-public-releases</name>
+          <url>https://repox.sonarsource.com/sonarsource-public-releases</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>sonarsource-public-snapshots</id>
+          <name>sonarsource-public-snapshots</name>
+          <url>https://repox.sonarsource.com/sonarsource-public-snapshots</url>
+          <releases>
+            <enabled>false</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <name>Central Repository</name>
+          <url>http://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
         </pluginRepository>
         <pluginRepository>
-          <id>repox-snapshots</id>
-          <snapshots/>
-          <name>sonarsource</name>
-          <url>https://repox.sonarsource.com/sonarsource</url>
+          <id>sonarsource-public-releases</id>
+          <name>sonarsource-public-releases</name>
+          <url>https://repox.sonarsource.com/sonarsource-public-releases</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+            <updatePolicy>never</updatePolicy>
+          </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+          <id>sonarsource-public-snapshots</id>
+          <name>sonarsource-public-snapshots</name>
+          <url>https://repox.sonarsource.com/sonarsource-public-snapshots</url>
+          <releases>
+            <enabled>false</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+          </snapshots>
         </pluginRepository>
       </pluginRepositories>
     </profile>
   </profiles>
-  <activeProfiles>
-    <activeProfile>repox</activeProfile>
-  </activeProfiles>
 </settings>

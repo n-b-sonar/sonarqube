@@ -20,7 +20,7 @@ CI)
   ./set_maven_build_version.sh $TRAVIS_BUILD_NUMBER
 
   mvn deploy \
-    -Prepox,publish-repox \
+    -Pdeploy-sonarsource \
     -DskipTests \
     -Dmaven.test.redirectTestOutputToFile=false \
     -Dartifactory.user=$REPOX_QA_DEPLOY_USERNAME \
