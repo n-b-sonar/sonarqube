@@ -49,11 +49,13 @@ import org.sonar.server.computation.duplication.DuplicationRepositoryRule;
 import org.sonar.server.computation.duplication.InnerDuplicate;
 import org.sonar.server.computation.duplication.TextBlock;
 import org.sonar.server.computation.scm.ScmInfoRepositoryImpl;
+import org.sonar.server.computation.source.DbFileSourceFetcher;
 import org.sonar.server.computation.source.SourceHashRepositoryImpl;
 import org.sonar.server.computation.source.SourceLinesRepositoryImpl;
 import org.sonar.server.computation.step.PersistFileSourcesStep;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class PersistFileSourcesStepTest {
 
@@ -94,7 +96,8 @@ public class PersistFileSourcesStepTest {
     analysisMetadataHolder.setBaseProjectSnapshot(null);
     SourceLinesRepositoryImpl sourceLinesRepository = new SourceLinesRepositoryImpl(batchReportReader);
     SourceHashRepositoryImpl sourceHashRepository = new SourceHashRepositoryImpl(sourceLinesRepository);
-    ScmInfoRepositoryImpl scmInfoRepository = new ScmInfoRepositoryImpl(batchReportReader, analysisMetadataHolder, dbClient, sourceHashRepository);
+    DbFileSourceFetcher fileSourceFetcher = mock(DbFileSourceFetcher.class);
+    ScmInfoRepositoryImpl scmInfoRepository = new ScmInfoRepositoryImpl(batchReportReader, analysisMetadataHolder, fileSourceFetcher, sourceHashRepository);
     PersistFileSourcesStep step = new PersistFileSourcesStep(dbClient, System2.INSTANCE, treeRootHolder, batchReportReader, sourceLinesRepository, scmInfoRepository,
       duplicationRepository);
     step.execute();

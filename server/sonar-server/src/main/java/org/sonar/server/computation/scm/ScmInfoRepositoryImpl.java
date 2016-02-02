@@ -22,35 +22,53 @@ package org.sonar.server.computation.scm;
 import com.google.common.base.Optional;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.batch.protocol.output.BatchReport;
-import org.sonar.db.DbClient;
-import org.sonar.db.DbSession;
 import org.sonar.db.source.FileSourceDto;
 import org.sonar.server.computation.analysis.AnalysisMetadataHolder;
 import org.sonar.server.computation.batch.BatchReportReader;
 import org.sonar.server.computation.component.Component;
+import org.sonar.server.computation.source.DbFileSourceFetcher;
+import org.sonar.server.computation.source.DbFileSourceFetcherListener;
 import org.sonar.server.computation.source.SourceHashRepository;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class ScmInfoRepositoryImpl implements ScmInfoRepository {
+public class ScmInfoRepositoryImpl implements ScmInfoRepository, DbFileSourceFetcherListener {
 
   private static final Logger LOGGER = Loggers.get(ScmInfoRepositoryImpl.class);
 
   private final BatchReportReader batchReportReader;
   private final AnalysisMetadataHolder analysisMetadataHolder;
-  private final DbClient dbClient;
+  private final DbFileSourceFetcher fileSourceFetcher;
   private final SourceHashRepository sourceHashRepository;
 
   private final Map<Component, ScmInfo> scmInfoCache = new HashMap<>();
 
-  public ScmInfoRepositoryImpl(BatchReportReader batchReportReader, AnalysisMetadataHolder analysisMetadataHolder, DbClient dbClient, SourceHashRepository sourceHashRepository) {
+  public ScmInfoRepositoryImpl(BatchReportReader batchReportReader, AnalysisMetadataHolder analysisMetadataHolder, DbFileSourceFetcher fileSourceFetcher, SourceHashRepository sourceHashRepository) {
     this.batchReportReader = batchReportReader;
     this.analysisMetadataHolder = analysisMetadataHolder;
-    this.dbClient = dbClient;
+    this.fileSourceFetcher = fileSourceFetcher;
     this.sourceHashRepository = sourceHashRepository;
+    // register itself to the DbFileSourceFetcher
+    this.fileSourceFetcher.register(this);
+  }
+
+  @Override
+  public void success(@Nonnull Component file, @Nonnull FileSourceDto dto) {
+    if (sourceHashRepository.getRawSourceHash(file).equals(dto.getSrcHash())) {
+      Optional<ScmInfo> scmInfo = DbScmInfo.create(file, dto.getSourceData().getLinesList());
+      scmInfoCache.put(file, scmInfo.orNull());
+    } else {
+      scmInfoCache.put(file, null);
+    }
+  }
+
+  @Override
+  public void failed(@Nonnull Component file) {
+    scmInfoCache.put(file, null);
   }
 
   @Override
@@ -61,45 +79,31 @@ public class ScmInfoRepositoryImpl implements ScmInfoRepository {
   }
 
   private void initializeScmInfoForComponent(Component component) {
-    if (scmInfoCache.containsKey(component)) {
+    if (scmInfoCache.containsKey(component) || component.getType() != Component.Type.FILE) {
       return;
-    }
-    Optional<ScmInfo> scmInfoOptional = getScmInfoForComponent(component);
-    scmInfoCache.put(component, scmInfoOptional.orNull());
-  }
-
-  private Optional<ScmInfo> getScmInfoForComponent(Component component) {
-    if (component.getType() != Component.Type.FILE) {
-      return Optional.absent();
     }
 
     BatchReport.Changesets changesets = batchReportReader.readChangesets(component.getReportAttributes().getRef());
     if (changesets == null) {
-      return getScmInfoFromDb(component);
-    }
-    return getScmInfoFromReport(component, changesets);
-  }
-
-  private Optional<ScmInfo> getScmInfoFromDb(Component file) {
-    if (analysisMetadataHolder.isFirstAnalysis()) {
-      return Optional.absent();
-    }
-
-    LOGGER.trace("Reading SCM info from db for file '{}'", file.getKey());
-    DbSession dbSession = dbClient.openSession(false);
-    try {
-      FileSourceDto dto = dbClient.fileSourceDao().selectSourceByFileUuid(dbSession, file.getUuid());
-      if (dto == null || !sourceHashRepository.getRawSourceHash(file).equals(dto.getSrcHash())) {
-        return Optional.absent();
-      }
-      return DbScmInfo.create(file, dto.getSourceData().getLinesList());
-    } finally {
-      dbClient.closeSession(dbSession);
+      initializeScmInfoFromDb(component);
+    } else {
+      initializeScmInfoFromReport(component, changesets);
     }
   }
 
-  private static Optional<ScmInfo> getScmInfoFromReport(Component file, BatchReport.Changesets changesets) {
+  /**
+   * Retrieve file source from DB and add ScmInfo to scmInfoCache depending on whether fetch was successful or not
+   * in methods {@link #success(Component, FileSourceDto)} and {@link #failed(Component)}.
+   */
+  private void initializeScmInfoFromDb(Component file) {
+    if (!analysisMetadataHolder.isFirstAnalysis()) {
+      fileSourceFetcher.fetch(file);
+    }
+  }
+
+  private void initializeScmInfoFromReport(Component file, BatchReport.Changesets changesets) {
     LOGGER.trace("Reading SCM info from report for file '{}'", file.getKey());
-    return Optional.<ScmInfo>of(new ReportScmInfo(changesets));
+    ReportScmInfo scmInfo = new ReportScmInfo(changesets);
+    scmInfoCache.put(file, scmInfo);
   }
 }

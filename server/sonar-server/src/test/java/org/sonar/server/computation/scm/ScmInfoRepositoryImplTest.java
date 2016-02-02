@@ -47,6 +47,7 @@ import org.sonar.server.computation.component.Component;
 import org.sonar.server.computation.component.ReportComponent;
 import org.sonar.server.computation.component.ViewsComponent;
 import org.sonar.server.computation.snapshot.Snapshot;
+import org.sonar.server.computation.source.DbFileSourceFetcher;
 import org.sonar.server.computation.source.SourceHashRepository;
 import org.sonar.server.computation.source.SourceHashRepositoryImpl;
 import org.sonar.server.computation.source.SourceLinesRepositoryImpl;
@@ -84,8 +85,9 @@ public class ScmInfoRepositoryImplTest {
 
   DbClient dbClient = dbTester.getDbClient();
 
-  ScmInfoRepositoryImpl underTest = new ScmInfoRepositoryImpl(reportReader, analysisMetadataHolder, dbClient,
-    new SourceHashRepositoryImpl(new SourceLinesRepositoryImpl(reportReader)));
+  DbFileSourceFetcher fileSourceFetcher = mock(DbFileSourceFetcher.class);
+  ScmInfoRepositoryImpl underTest = new ScmInfoRepositoryImpl(reportReader, analysisMetadataHolder,
+      fileSourceFetcher, new SourceHashRepositoryImpl(new SourceLinesRepositoryImpl(reportReader)));
 
   @Test
   public void read_from_report() throws Exception {
@@ -182,7 +184,7 @@ public class ScmInfoRepositoryImplTest {
     AnalysisMetadataHolder analysisMetadataHolder = mock(AnalysisMetadataHolder.class);
     DbClient dbClient = mock(DbClient.class);
     SourceHashRepository sourceHashRepository = mock(SourceHashRepository.class);
-    ScmInfoRepositoryImpl underTest = new ScmInfoRepositoryImpl(batchReportReader, analysisMetadataHolder, dbClient, sourceHashRepository);
+    ScmInfoRepositoryImpl underTest = new ScmInfoRepositoryImpl(batchReportReader, analysisMetadataHolder, fileSourceFetcher, sourceHashRepository);
 
     assertThat(underTest.getScmInfo(component)).isAbsent();
 

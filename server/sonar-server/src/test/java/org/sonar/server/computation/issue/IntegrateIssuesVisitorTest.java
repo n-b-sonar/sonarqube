@@ -46,6 +46,7 @@ import org.sonar.server.computation.component.Component;
 import org.sonar.server.computation.component.TypeAwareVisitor;
 import org.sonar.server.computation.issue.commonrule.CommonRuleEngineImpl;
 import org.sonar.server.computation.qualityprofile.ActiveRulesHolderRule;
+import org.sonar.server.computation.source.DbFileSourceFetcher;
 import org.sonar.server.computation.source.SourceLinesRepositoryRule;
 import org.sonar.server.issue.IssueTesting;
 
@@ -104,7 +105,8 @@ public class IntegrateIssuesVisitorTest {
   ArgumentCaptor<DefaultIssue> defaultIssueCaptor = ArgumentCaptor.forClass(DefaultIssue.class);
 
   BaseIssuesLoader baseIssuesLoader = new BaseIssuesLoader(treeRootHolder, dbTester.getDbClient(), ruleRepositoryRule, activeRulesHolderRule);
-  TrackerExecution tracker = new TrackerExecution(new TrackerBaseInputFactory(baseIssuesLoader, dbTester.getDbClient()), new TrackerRawInputFactory(treeRootHolder, reportReader,
+  DbFileSourceFetcher fileSourceFetcher = mock(DbFileSourceFetcher.class);
+  TrackerExecution tracker = new TrackerExecution(new TrackerBaseInputFactory(baseIssuesLoader, fileSourceFetcher), new TrackerRawInputFactory(treeRootHolder, reportReader,
     fileSourceRepository, new CommonRuleEngineImpl()), new Tracker<DefaultIssue, DefaultIssue>());
   IssueCache issueCache;
 

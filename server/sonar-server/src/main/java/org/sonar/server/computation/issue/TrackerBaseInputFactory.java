@@ -19,17 +19,18 @@
  */
 package org.sonar.server.computation.issue;
 
-import com.google.common.base.Objects;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.sonar.core.issue.DefaultIssue;
 import org.sonar.core.issue.tracking.Input;
 import org.sonar.core.issue.tracking.LazyInput;
 import org.sonar.core.issue.tracking.LineHashSequence;
-import org.sonar.db.DbSession;
-import org.sonar.db.MyBatis;
+import org.sonar.db.source.FileSourceDao;
+import org.sonar.db.source.FileSourceDto;
 import org.sonar.server.computation.component.Component;
-import org.sonar.db.DbClient;
+import org.sonar.server.computation.source.DbFileSourceFetcher;
+import org.sonar.server.computation.source.DbFileSourceFetcherListener;
 
 /**
  * Factory of {@link Input} of base data for issue tracking. Data are lazy-loaded.
@@ -37,11 +38,11 @@ import org.sonar.db.DbClient;
 public class TrackerBaseInputFactory {
 
   private final BaseIssuesLoader baseIssuesLoader;
-  private final DbClient dbClient;
+  private final DbFileSourceFetcher fileSourceFetcher;
 
-  public TrackerBaseInputFactory(BaseIssuesLoader baseIssuesLoader, DbClient dbClient) {
+  public TrackerBaseInputFactory(BaseIssuesLoader baseIssuesLoader, DbFileSourceFetcher fileSourceFetcher) {
     this.baseIssuesLoader = baseIssuesLoader;
-    this.dbClient = dbClient;
+    this.fileSourceFetcher = fileSourceFetcher;
   }
 
   public Input<DefaultIssue> create(Component component) {
@@ -57,18 +58,34 @@ public class TrackerBaseInputFactory {
 
     @Override
     protected LineHashSequence loadLineHashSequence() {
-      DbSession session = dbClient.openSession(false);
+      SourceFetcherListener listener = new SourceFetcherListener();
       try {
-        List<String> hashes = dbClient.fileSourceDao().selectLineHashes(session, component.getUuid());
-        return new LineHashSequence(Objects.firstNonNull(hashes, Collections.<String>emptyList()));
+        fileSourceFetcher.register(listener);
+        fileSourceFetcher.fetch(component);
       } finally {
-        MyBatis.closeQuietly(session);
+        fileSourceFetcher.unregister(listener);
       }
+
+      return new LineHashSequence(listener.dto == null ? Collections.<String>emptyList() : FileSourceDao.parseLineHashes(listener.dto));
     }
 
     @Override
     protected List<DefaultIssue> loadIssues() {
       return baseIssuesLoader.loadForComponentUuid(component.getUuid());
+    }
+
+    private class SourceFetcherListener implements DbFileSourceFetcherListener {
+      private FileSourceDto dto;
+
+      @Override
+      public void success(@Nonnull Component file, @Nonnull FileSourceDto dto) {
+        this.dto = dto;
+      }
+
+      @Override
+      public void failed(@Nonnull Component file) {
+        // do nothing
+      }
     }
   }
 }

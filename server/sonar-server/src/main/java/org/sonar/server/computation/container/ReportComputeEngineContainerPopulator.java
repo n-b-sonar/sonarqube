@@ -80,6 +80,7 @@ import org.sonar.server.computation.qualitygate.QualityGateServiceImpl;
 import org.sonar.server.computation.qualityprofile.ActiveRulesHolderImpl;
 import org.sonar.server.computation.queue.CeTask;
 import org.sonar.server.computation.scm.ScmInfoRepositoryImpl;
+import org.sonar.server.computation.source.DbFileSourceFetcherImpl;
 import org.sonar.server.computation.source.LastCommitVisitor;
 import org.sonar.server.computation.source.SourceHashRepositoryImpl;
 import org.sonar.server.computation.source.SourceLinesRepositoryImpl;
@@ -152,6 +153,9 @@ public final class ReportComputeEngineContainerPopulator implements ContainerPop
       SourceHashRepositoryImpl.class,
       ScmInfoRepositoryImpl.class,
       DuplicationRepositoryImpl.class,
+
+      // fetchers
+      DbFileSourceFetcherImpl.class,
 
       // issues
       RuleRepositoryImpl.class,
